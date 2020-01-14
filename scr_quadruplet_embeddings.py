@@ -7,7 +7,7 @@ import cv2
 from random import shuffle, sample
 import pickle
 import sklearn.metrics as mt
-import models_hugomcp as md
+import models as md
 import math
 import datetime
 import csv
@@ -240,7 +240,8 @@ debug_al = tf.placeholder(tf.float32, shape=None)
 debug_loss = loss_triplet(debug_logits, debug_al)
 
 with tf.variable_scope('model_definition') as scope:
-    model_outputs = md.vgg_clustering(x_inputs, 1.0, args['manifold_dimension'])
+    model_outputs = md.vgg(x_inputs, 1.0, args['manifold_dimension'])
+    #model_outputs = md.resnet(x_inputs, 1.0, args['manifold_dimension'])
     scope.reuse_variables()
 
 loss = loss_quadruplet(model_outputs, alphas))
