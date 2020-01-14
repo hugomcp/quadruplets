@@ -36,6 +36,8 @@ def convLayer(x, kHeight, kWidth, strideX, strideY, featureNum, name, padding = 
 
 
 def vgg_like(x_inputs, keepPro, classNum):
+    x_inputs_shape = tf.shape(x_inputs).numpy()
+
     conv1_1 = convLayer(x_inputs, 3, 3, 1, 1, 64, "conv1_1" )
     conv1_2 = convLayer(conv1_1, 3, 3, 1, 1, 64, "conv1_2")
     conv1_3 = convLayer(conv1_2, 3, 3, 1, 1, 128, "conv1_3")
@@ -55,16 +57,14 @@ def vgg_like(x_inputs, keepPro, classNum):
 
     conv3_3 = convLayer(conv3_2, 3, 3, 1, 1, 512, "conv3_3")
     pool3 = maxPoolLayer(conv3_3, 2, 2, 2, 2, "pool3")
-
-
+    
     #conv4_1 = convLayer(pool3, 3, 3, 1, 1, 512, "conv4_1")
     #conv4_2 = convLayer(conv4_1, 3, 3, 1, 1, 512, "conv4_2")
     #conv4_3 = convLayer(conv4_2, 3, 3, 1, 1, 512, "conv4_3")
 
     #pool3 = tf.Print(pool3, ['POOL3: ',tf.shape(pool3)])
 
-
-    fcIn = tf.reshape(pool3, [-1, 8*8*512])
+    fcIn = tf.reshape(pool3, [-1, (x_inputs_shape[0]/8)*(x_inputs_shape[1]/8)*512])
     fc6 = fcLayer(fcIn, 8*8*512, 512, True, "fc6")
     drop1 = tf.nn.dropout(fc6, keepPro)
 
@@ -75,11 +75,11 @@ def vgg_like(x_inputs, keepPro, classNum):
 
     return fc8
 
-#cur_shape = tf.shape(x_inputs).numpy()
-# #conv_in = tf.reshape(pool1, [-1, cur_shape[0]/4 * cur_shape[1]/4 * 64])
+
 
 
 def resnet_like(x_inputs, keepPro, classNum):
+    x_inputs_shape = tf.shape(x_inputs).numpy()
     conv1_1 = convLayer(x_inputs, 7, 7, 2, 2, 64, "conv1_1")
     pool1 = maxPoolLayer(conv1_1, 2, 2, 2, 2, "pool1")
 
@@ -90,7 +90,6 @@ def resnet_like(x_inputs, keepPro, classNum):
     conv3_1 = convLayer(conc_1, 3, 3, 1, 1, 64, "conv3_1")
     conv3_2 = convLayer(conv3_1, 3, 3, 1, 1, 64, "conv3_2")
     conc_2 = tf.concat([conc_1, conv3_2], 1)
-
 
     conv4_1 = convLayer(conc_2, 3, 3, 1, 1, 64, "conv4_1")
     conv4_2 = convLayer(conv4_1, 3, 3, 1, 1, 64, "conv4_2")
@@ -153,8 +152,8 @@ def resnet_like(x_inputs, keepPro, classNum):
 
     pool5 = avgPoolLayer(conc_15, 2, 2, 2, 2, "pool5")
 
-    fcIn = tf.reshape(pool5, [-1, 8 * 8 * 512])
-    fc6 = fcLayer(fcIn, 8 * 8 * 512, 512, True, "fc6")
+    fcIn = tf.reshape(pool5, [-1, (x_inputs_shape[0]/64) * (x_inputs_shape[1]/64) * 512])
+    fc6 = fcLayer(fcIn, (x_inputs_shape[0]/64) * (x_inputs_shape[1]/64) * 512, 512, True, "fc6")
     drop1 = tf.nn.dropout(fc6, keepPro)
 
     fc8 = fcLayer(drop1, 256, classNum, False, "fc8")
