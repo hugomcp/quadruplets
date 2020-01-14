@@ -35,7 +35,6 @@ ap.add_argument('-a', '--alpha', type=float, default=1.0, help='Alpha penalty')
 ap.add_argument('-f', '--features', default='1', help='Input features used to define targets')
 ap.add_argument('-n', '--features_manifold', default='0', help='Input features manifold flags')
 
-
 args = vars(ap.parse_args())
 FEATURES = args['features'].split(',')
 for i, f in enumerate(FEATURES):
@@ -56,7 +55,8 @@ imdb_file = args['dataset'][:-4] + '.dat'
 lr_decay = 0.9
 decay_epochs = 100
 
-COLORS = ['tab:red', 'tab:green', 'tab:blue', 'tab:orange', 'tab:purple', 'tab:brown', 'tab:pink', 'tab:gray', 'tab:cyan']
+COLORS = ['tab:red', 'tab:green', 'tab:blue', 'tab:orange', 'tab:purple', 'tab:brown', 'tab:pink', 'tab:gray',
+          'tab:cyan']
 
 # #####################################################################################################################
 # Load Data in '.csv' format: filename, class__1, class_2, ... learning_test_set_flag
@@ -148,7 +148,7 @@ def read_batch(l_s, rand_idx, imd, manifold_columns):
         alphas[:, :, i] = cur_pair
 
     alphas = np.sum(alphas, axis=2)
-    
+
     alphas[alphas > 1] = 1
     alphas = np.reshape(alphas, [-1, 1])
 
@@ -201,7 +201,6 @@ def pairwise_sum_elements_array(a):
     return tf.reshape(diff, [-1])
 
 
-
 def loss_quadruplet(logits, difs_al):
     difs_al = tf.reshape(difs_al, [-1])
 
@@ -237,17 +236,15 @@ def loss_quadruplet(logits, difs_al):
 
 debug_logits = tf.placeholder(tf.float32, shape=(None, 3))
 debug_al = tf.placeholder(tf.float32, shape=None)
-debug_loss = loss_triplet(debug_logits, debug_al)
 
 with tf.variable_scope('model_definition') as scope:
     model_outputs = md.vgg_like(x_inputs, 1.0, args['manifold_dimension'])
-    #model_outputs = md.resnet_like(x_inputs, 1.0, args['manifold_dimension'])
+    # model_outputs = md.resnet_like(x_inputs, 1.0, args['manifold_dimension'])
     scope.reuse_variables()
 
-loss = loss_quadruplet(model_outputs, alphas))
+loss = loss_quadruplet(model_outputs, alphas)
 
-model_learning_rate = tf.train.exponential_decay(args['learning_rate'], generation_num, decay_epochs, lr_decay,
-                                                 staircase=True)
+model_learning_rate = tf.train.exponential_decay(args['learning_rate'], generation_num, decay_epochs, lr_decay, staircase = True)
 my_optimizer = tf.train.GradientDescentOptimizer(model_learning_rate)
 gradients = my_optimizer.compute_gradients(loss)
 train_op = my_optimizer.apply_gradients(gradients)
@@ -275,26 +272,25 @@ else:
 train_loss = []
 
 for e in range(args['epochs']):
-
     i = 0
-    sess.run(generation_num.assign(e))
-    epoch_loss = 0
+sess.run(generation_num.assign(e))
+epoch_loss = 0
 
-    while i < len(learning_samples):
-        rand_idx = np.random.choice(range(len(learning_samples)), size=args['batch_size'], replace=True)
-        # rand_idx = np.asarray(range(i, np.min([i + args['batch_size'], len(learning_samples)])))
+while i < len(learning_samples):
+    rand_idx = np.random.choice(range(len(learning_samples)), size=args['batch_size'], replace=True)
+    # rand_idx = np.asarray(range(i, np.min([i + args['batch_size'], len(learning_samples)])))
 
-        rand_imgs, rand_alphas = read_batch(learning_samples, rand_idx, imdb, FEATURES_MANIFOLD)
+    rand_imgs, rand_alphas = read_batch(learning_samples, rand_idx, imdb, FEATURES_MANIFOLD)
 
-        sess.run(train_op, feed_dict={x_inputs: rand_imgs, alphas: rand_alphas})
+    sess.run(train_op, feed_dict={x_inputs: rand_imgs, alphas: rand_alphas})
 
-        t_loss = sess.run(loss, feed_dict={x_inputs: rand_imgs, alphas: rand_alphas})
+    t_loss = sess.run(loss, feed_dict={x_inputs: rand_imgs, alphas: rand_alphas})
 
-        print('Learning\tEpoch\t{}/{}\tBatch {}/{}\tLoss={:.5f}'.format(e + 1, args['epochs'],
-                                                                        (i + 1) // args['batch_size'] + 1, math.ceil(
-                len(learning_samples) / args['batch_size']), t_loss))
-        i += args['batch_size']
-        epoch_loss += t_loss * len(rand_idx)
+    print('Learning\tEpoch\t{}/{}\tBatch {}/{}\tLoss={:.5f}'.format(e + 1, args['epochs'],
+                                                                    (i + 1) // args['batch_size'] + 1, math.ceil(
+            len(learning_samples) / args['batch_size']), t_loss))
+    i += args['batch_size']
+    epoch_loss += t_loss * len(rand_idx)
 
     epoch_loss /= len(learning_samples)
     train_loss.append(epoch_loss)
@@ -325,7 +321,6 @@ plt.savefig(os.path.join(date_time_folder, 'Learning.png'))
 ########################################################################################################################
 
 saver.save(sess, os.path.join(date_time_folder, 'model'))
-
 
 #######################################
 # Learning + test final state
@@ -374,7 +369,7 @@ for i in range(len(learning_samples)):
         file_out.write("%d, " % learning_samples[i][j])
     for j in range(args['manifold_dimension']):
         file_out.write("%f" % learning_out[i][j])
-        if j < args['manifold_dimension']-1:
+        if j < args['manifold_dimension'] - 1:
             file_out.write(", ")
         else:
             file_out.write("\n")
@@ -388,12 +383,11 @@ for i in range(len(test_samples)):
         file_out.write("%d, " % test_samples[i][j])
     for j in range(args['manifold_dimension']):
         file_out.write("%f" % test_out[i][j])
-        if j < args['manifold_dimension']-1:
+        if j < args['manifold_dimension'] - 1:
             file_out.write(", ")
         else:
             file_out.write("\n")
 file_out.close()
-
 
 # #######################################
 # Closest instance performance measures
@@ -450,7 +444,6 @@ for i in range(TOT_FEATURES):
 
 file_out.close()
 
-
 fig = plt.figure(2 + TOT_FEATURES)
 if args['manifold_dimension'] == 2 or args['manifold_dimension'] == 3:
     if args['manifold_dimension'] == 2:
@@ -463,14 +456,10 @@ if args['manifold_dimension'] == 2 or args['manifold_dimension'] == 3:
             pts = [learning_out[i] for i in idx]
             ax.scatter(*zip(*pts), c=COLORS[line % len(COLORS)], marker='+')
 
-
 plt.grid(b=True, which='both', axis='both')
 fig.show()
 plt.pause(0.01)
 plt.savefig(os.path.join(date_time_folder, 'Feature_Space.png'))
-
-
-
 
 fig = plt.figure(3 + TOT_FEATURES)
 if args['manifold_dimension'] == 2 or args['manifold_dimension'] == 3:
@@ -480,7 +469,7 @@ if args['manifold_dimension'] == 2 or args['manifold_dimension'] == 3:
         ax = fig.add_subplot(111, projection='3d')
     for line, p in enumerate(classes):
         idx = np.where((learning_gt == p).all(axis=1))[0]
-        label_p = ''.join([str(pp)+',' for pp in p[1:]])
+        label_p = ''.join([str(pp) + ',' for pp in p[1:]])
         if len(idx) > 0:
             pts = [learning_out[i] for i in idx]
             cls = [learning_gt[i][0] for i in idx]
@@ -496,6 +485,5 @@ plt.grid(b=True, which='both', axis='both')
 fig.show()
 plt.pause(0.01)
 plt.savefig(os.path.join(date_time_folder, 'Feature_Space_pts.png'))
-
 
 name = input('Close app?')
