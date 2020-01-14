@@ -240,8 +240,8 @@ debug_al = tf.placeholder(tf.float32, shape=None)
 debug_loss = loss_triplet(debug_logits, debug_al)
 
 with tf.variable_scope('model_definition') as scope:
-    model_outputs = md.vgg(x_inputs, 1.0, args['manifold_dimension'])
-    #model_outputs = md.resnet(x_inputs, 1.0, args['manifold_dimension'])
+    model_outputs = md.vgg_like(x_inputs, 1.0, args['manifold_dimension'])
+    #model_outputs = md.resnet_like(x_inputs, 1.0, args['manifold_dimension'])
     scope.reuse_variables()
 
 loss = loss_quadruplet(model_outputs, alphas))
